@@ -1,12 +1,10 @@
 <template>
   <div class="page-container">
-    <!-- 顶部标题栏 -->
     <header class="app-header">
-      <h1> 农业病虫害文本标注与结构化生成工具</h1>
+      <h1>农业病虫害文本标注与结构化生成工具</h1>
     </header>
 
     <div class="main-content">
-      <!-- 左侧：图片展示区 -->
       <div class="left-panel card">
         <div class="card-header">图片预览与导航</div>
         <div class="card-body">
@@ -36,12 +34,10 @@
         </div>
       </div>
 
-      <!-- 右侧：结构化标注区 -->
       <div class="right-panel card">
         <div class="card-header">结构化标注区（点击展开/收起）</div>
         <div class="card-body scrollable-body">
           
-          <!-- 0. 状态判断 -->
           <div class="collapse-item">
             <div class="group-header header-active" @click="toggleGroup('status')">
               <span>0. 状态判断</span>
@@ -62,7 +58,6 @@
             </div>
           </div>
 
-          <!-- 1. 作物及部位 -->
           <div class="collapse-item">
             <div class="group-header" :class="{ 'header-active': openGroups.crop }" @click="toggleGroup('crop')">
               <span>1. 作物及部位</span>
@@ -124,7 +119,6 @@
             </div>
           </div>
 
-          <!-- 2. 症状（支持多症状组） -->
           <div class="collapse-item">
             <div class="group-header" :class="{ 'header-active': openGroups.symptoms }" @click="toggleGroup('symptoms')">
               <span>2. 症状表现</span>
@@ -140,7 +134,6 @@
                 <div class="sub-group">
                   <div class="sub-label">症状类型（单选，再次点击取消）</div>
                   <div class="tag-list">
-                    <!-- 症状类型已拆分，这里遍历动态生成 -->
                     <label v-for="type in getTags('symptomType')" :key="type" class="tag-item" :class="{ 'tag-item-checked': symptom.type === type }" @click.prevent="symptom.type = symptom.type === type ? '' : type" @contextmenu.prevent="removeCustomTag('symptomType', type)">
                       <input type="radio" :checked="symptom.type === type" /> {{ type }}
                       <span v-if="!baseTags['symptomType']?.includes(type)" class="del-tag-icon" @click.stop.prevent="removeCustomTag('symptomType', type)">×</span>
@@ -153,7 +146,6 @@
                 </div>
 
                 <div v-if="symptom.type" class="dynamic-attributes">
-                  <!-- 颜色 -->
                   <div v-if="symptomAttributes[symptom.type]?.includes('color')" class="sub-group">
                     <div class="sub-label">颜色</div>
                     <div class="tag-list">
@@ -167,7 +159,6 @@
                       <button v-else @click="showAddInput('color')" class="mini-add-btn">+ 添加</button>
                     </div>
                   </div>
-                  <!-- 形状 -->
                   <div v-if="symptomAttributes[symptom.type]?.includes('shape')" class="sub-group">
                     <div class="sub-label">形状</div>
                     <div class="tag-list">
@@ -181,7 +172,6 @@
                       <button v-else @click="showAddInput('shape')" class="mini-add-btn">+ 添加</button>
                     </div>
                   </div>
-                  <!-- 中心颜色 -->
                   <div v-if="symptomAttributes[symptom.type]?.includes('centerColor')" class="sub-group">
                     <div class="sub-label">中心颜色</div>
                     <div class="tag-list">
@@ -195,7 +185,6 @@
                       <button v-else @click="showAddInput('centerColor')" class="mini-add-btn">+ 添加</button>
                     </div>
                   </div>
-                  <!-- 边缘颜色 -->
                   <div v-if="symptomAttributes[symptom.type]?.includes('edgeColor')" class="sub-group">
                     <div class="sub-label">边缘颜色</div>
                     <div class="tag-list">
@@ -209,7 +198,6 @@
                       <button v-else @click="showAddInput('edgeColor')" class="mini-add-btn">+ 添加</button>
                     </div>
                   </div>
-                  <!-- 位置 -->
                   <div v-if="symptomAttributes[symptom.type]?.includes('position')" class="sub-group">
                     <div class="sub-label">位置</div>
                     <div class="tag-list">
@@ -223,7 +211,6 @@
                       <button v-else @click="showAddInput('position')" class="mini-add-btn">+ 添加</button>
                     </div>
                   </div>
-                  <!-- 范围 -->
                   <div v-if="symptomAttributes[symptom.type]?.includes('range')" class="sub-group">
                     <div class="sub-label">范围</div>
                     <div class="tag-list">
@@ -237,7 +224,6 @@
                       <button v-else @click="showAddInput('range')" class="mini-add-btn">+ 添加</button>
                     </div>
                   </div>
-                  <!-- 分布 -->
                   <div v-if="symptomAttributes[symptom.type]?.includes('distribution')" class="sub-group">
                     <div class="sub-label">分布</div>
                     <div class="tag-list">
@@ -251,7 +237,6 @@
                       <button v-else @click="showAddInput('distribution')" class="mini-add-btn">+ 添加</button>
                     </div>
                   </div>
-                  <!-- 数量 -->
                   <div v-if="symptomAttributes[symptom.type]?.includes('quantity')" class="sub-group">
                     <div class="sub-label">数量（单选，再次点击取消）</div>
                     <div class="tag-list">
@@ -265,7 +250,6 @@
                       <button v-else @click="showAddInput('symptomQuantity')" class="mini-add-btn">+ 添加</button>
                     </div>
                   </div>
-                  <!-- 严重程度 -->
                   <div v-if="symptomAttributes[symptom.type]?.includes('severity')" class="sub-group">
                     <div class="sub-label">严重程度（单选，再次点击取消）</div>
                     <div class="tag-list">
@@ -279,7 +263,6 @@
                       <button v-else @click="showAddInput('severity')" class="mini-add-btn">+ 添加</button>
                     </div>
                   </div>
-                  <!-- 透明程度（专属） -->
                   <div v-if="symptomAttributes[symptom.type]?.includes('transparency')" class="sub-group">
                     <div class="sub-label">透明程度</div>
                     <div class="tag-list">
@@ -293,7 +276,6 @@
                       <button v-else @click="showAddInput('transparency')" class="mini-add-btn">+ 添加</button>
                     </div>
                   </div>
-                  <!-- 附加属性 -->
                   <div v-if="symptomAttributes[symptom.type]?.includes('extra')" class="sub-group">
                     <div class="sub-label">附加属性</div>
                     <div class="tag-list">
@@ -311,7 +293,6 @@
               </div>
               <button @click="addSymptom" class="add-symptom-btn">+ 添加症状组</button>
               
-              <!-- 可见虫体子项 -->
               <div class="sub-group" style="margin-top: 20px; border-top: 1px dashed #ddd; padding-top: 15px;">
                 <div class="sub-label">可见虫体（图像事实）</div>
                 <div class="tag-list">
@@ -364,7 +345,6 @@
             </div>
           </div>
 
-          <!-- 3. 诊断 -->
           <div class="collapse-item">
             <div class="group-header" :class="{ 'header-active': openGroups.diagnosis }" @click="toggleGroup('diagnosis')">
               <span>3. 诊断（读取已有标注）</span>
@@ -384,7 +364,6 @@
                   <button v-else @click="showAddInput('diagnosisType')" class="mini-add-btn">+ 添加</button>
                 </div>
               </div>
-              <!-- 病害分支 -->
               <div v-if="formData.diagnosis.type === '病害'" class="dynamic-attributes">
                 <div class="sub-group">
                   <div class="sub-label">病害名称</div>
@@ -403,7 +382,6 @@
                     <button v-else @click="showAddInput('pathogenType')" class="mini-add-btn">+ 添加</button>
                   </div>
                 </div>
-                <!-- 病原名称（无预设，纯自定义标签） -->
                 <div class="sub-group">
                   <div class="sub-label">病原名称（单选，再次点击取消）</div>
                   <div class="tag-list">
@@ -418,14 +396,12 @@
                   </div>
                 </div>
               </div>
-              <!-- 虫害分支 -->
               <div v-if="formData.diagnosis.type === '虫害'" class="dynamic-attributes">
                 <div class="sub-group">
                   <div class="sub-label">害虫名称</div>
                   <input type="text" v-model="formData.diagnosis.pestName" placeholder="例如：甜菜夜蛾" class="text-input" />
                 </div>
               </div>
-              <!-- 环境胁迫分支 -->
               <div v-if="formData.diagnosis.type === '环境胁迫'" class="dynamic-attributes">
                 <div class="sub-group">
                   <div class="sub-label">胁迫类型（多选）</div>
@@ -461,13 +437,11 @@
       </div>
     </div>
 
-    <!-- 底部：文本生成区 -->
     <div class="bottom-panel card">
       <div class="card-header result-header">📝 实时生成的文本描述</div>
       <div class="card-body">
         <p class="generated-text">{{ generatedText }}</p>
         
-        <!-- 🚀 新增：翻译模块 -->
         <div class="translate-section" style="margin-top: 15px; border-top: 1px dashed #dcdfe6; padding-top: 15px;">
           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
             <button @click="translateToEnglish" :disabled="isTranslating" class="btn btn-warning" style="background: #faad14; color: white;">
@@ -482,13 +456,7 @@
           
           <div v-if="translatedText || isTranslating">
             <div class="sub-label" style="margin-top: 10px;">英文翻译（可直接修改）：</div>
-            <textarea 
-              v-model="translatedText" 
-              class="translate-textarea" 
-              rows="4"
-              placeholder="翻译结果将在此显示，您可以自由修改..."
-              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #dcdfe6; font-size: 14px; line-height: 1.5; resize: vertical;"
-            ></textarea>
+            <textarea v-model="translatedText" class="translate-textarea" rows="4" placeholder="翻译结果将在此显示，您可以自由修改..." style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #dcdfe6; font-size: 14px; line-height: 1.5; resize: vertical;"></textarea>
           </div>
         </div>
 
@@ -736,12 +704,11 @@ const generatedText = computed(() => {
   return text || '请在上方勾选标签以生成文本...'
 })
 
-// ================= 6. 🚀 新增：翻译逻辑 =================
+// ================= 6. 翻译逻辑 =================
 const translatedText = ref('')
 const isTranslating = ref(false)
-const exportLanguage = ref('zh') // 默认导出中文
+const exportLanguage = ref('zh')
 
-// 检测是否包含中文字符
 const containsChinese = (text) => {
   return /[\u4e00-\u9fa5]/.test(text)
 }
@@ -755,9 +722,11 @@ const translateToEnglish = async () => {
   translatedText.value = '翻译中...'
 
   try {
-    // 注意：这里的地址是你本地启动的 DeepL 代理地址。部署上线后请改成服务器的公网地址
-    // 不再需要公网 IP 和端口，直接写本项目的接口路径
-const DEEPL_PROXY_URL = '/api/translate'
+    // 🚀 自动判断环境：本地开发用 localhost，线上用 Vercel 接口
+    const DEEPL_PROXY_URL = import.meta.env.DEV 
+      ? 'http://localhost:3000/v2/translate' 
+      : '/api/translate'
+
     const response = await fetch(DEEPL_PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -768,13 +737,16 @@ const DEEPL_PROXY_URL = '/api/translate'
       })
     })
     
-    if (!response.ok) throw new Error('翻译请求失败，请检查本地代理是否启动')
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.detail || '翻译请求失败，请检查服务是否运行')
+    }
     
     const data = await response.json()
     translatedText.value = data.translations[0].text
   } catch (error) {
-    console.error('DeepL 翻译错误:', error)
-    alert('翻译失败：' + error.message + '\n请确保你的 DeepL 代理服务正在运行（npm start）。')
+    console.error('翻译错误:', error)
+    alert('翻译失败：' + error.message)
     translatedText.value = ''
   } finally {
     isTranslating.value = false
@@ -788,7 +760,6 @@ const saveCurrentRecord = () => {
   if (!currentImage.value) return alert('请先选择图片文件夹！')
   if (generatedText.value === '请在上方勾选标签以生成文本...') return alert('请至少勾选一些标签！')
 
-  // 🚀 根据导出语言选项，决定最终写入的文本
   const finalDescription = exportLanguage.value === 'en' ? (translatedText.value || generatedText.value) : generatedText.value
 
   const record = {
@@ -810,7 +781,6 @@ const saveCurrentRecord = () => {
       stressType: formData.value.diagnosis.stressType,
       nutritionDeficiency: formData.value.diagnosis.nutritionDeficiency
     },
-    // 🚀 修改：description_zh 字段根据用户的选择写入中文或英文
     description_zh: finalDescription,
     qa: []
   }
@@ -835,7 +805,6 @@ const exportAllJsonl = () => {
 </script>
 
 <style scoped>
-/* 样式完全保留，未做任何删减 */
 .page-container { min-height: 100vh; background-color: #e9ecf0; padding: 20px; font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif; color: #333; box-sizing: border-box; width: 100%; margin: 0; }
 .app-header { text-align: center; margin-bottom: 20px; background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%); color: #fff; padding: 16px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
 .app-header h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: 1px; }
@@ -905,6 +874,8 @@ const exportAllJsonl = () => {
 .btn-primary:hover { background: #40a9ff; transform: translateY(-2px); }
 .btn-success { background: #42b983; color: white; }
 .btn-success:hover { background: #5daf34; transform: translateY(-2px); }
+.btn-warning { background: #faad14; color: white; }
+.btn-warning:hover { background: #ffc53d; transform: translateY(-2px); }
 @media (max-width: 900px) { .main-content { flex-direction: column; gap: 16px; } .left-panel, .right-panel { flex: none; width: 100%; max-height: none; } .scrollable-body { max-height: none; overflow-y: visible; } .btn-group { flex-direction: column; } .btn { width: 100%; } }
 .del-tag-icon { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #ccc; font-size: 14px; cursor: pointer; font-weight: bold; line-height: 1; }
 .tag-item:hover .del-tag-icon { color: #ff4d4f; }

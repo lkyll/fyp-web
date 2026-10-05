@@ -1,6 +1,5 @@
 // api/translate.js
 export default async function handler(req, res) {
-  // 只允许 POST 请求
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
@@ -12,10 +11,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 从 Vercel 环境变量中读取 DEEPL_API_KEY
     const apiKey = process.env.DEEPL_API_KEY
-    
-    // 判断是否为免费版 API（以 :fx 结尾）
+    if (!apiKey) {
+      throw new Error("Vercel 环境变量 DEEPL_API_KEY 未配置！")
+    }
+
+    // 免费版 API 地址和付费版不同
     const url = apiKey.endsWith(':fx') 
       ? 'https://api-free.deepl.com/v2/translate' 
       : 'https://api.deepl.com/v2/translate'
@@ -33,12 +34,19 @@ export default async function handler(req, res) {
       })
     })
 
-    if (!response.ok) throw new Error(`DeepL API error: ${response.status}`)
+    if (!response.ok) {
+      const errorData = await response.text()
+      throw new Error(`DeepL API 返回错误: ${response.status} - ${errorData}`)
+    }
 
     const data = await response.json()
     res.status(200).json(data)
   } catch (error) {
     console.error('Translation error:', error)
-    res.status(500).json({ error: 'Translation failed' })
+    // 🚀 把真实的错误信息返回给前端
+    res.status(500).json({ 
+      error: 'Translation failed', 
+      detail: error.message 
+    })
   }
 }
