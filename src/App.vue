@@ -756,8 +756,8 @@ const translateToEnglish = async () => {
 
   try {
     // 注意：这里的地址是你本地启动的 DeepL 代理地址。部署上线后请改成服务器的公网地址
-    const DEEPL_PROXY_URL = 'http://localhost:3000/v2/translate'
-    
+    // 不再需要公网 IP 和端口，直接写本项目的接口路径
+const DEEPL_PROXY_URL = '/api/translate'
     const response = await fetch(DEEPL_PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
