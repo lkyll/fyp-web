@@ -466,7 +466,33 @@
       <div class="card-header result-header">📝 实时生成的文本描述</div>
       <div class="card-body">
         <p class="generated-text">{{ generatedText }}</p>
-        <div class="btn-group">
+        
+        <!-- 🚀 新增：翻译模块 -->
+        <div class="translate-section" style="margin-top: 15px; border-top: 1px dashed #dcdfe6; padding-top: 15px;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <button @click="translateToEnglish" :disabled="isTranslating" class="btn btn-warning" style="background: #faad14; color: white;">
+              {{ isTranslating ? '翻译中...' : '🌐 翻译成英文' }}
+            </button>
+            <div style="display: flex; align-items: center; gap: 15px; margin-left: auto; background: #f0f2f5; padding: 5px 10px; border-radius: 4px;">
+              <span style="font-size: 14px; color: #606266;">导出语言：</span>
+              <label class="tag-item" style="font-size: 13px;"><input type="radio" value="zh" v-model="exportLanguage" style="margin-right: 5px;" /> 中文</label>
+              <label class="tag-item" style="font-size: 13px;"><input type="radio" value="en" v-model="exportLanguage" style="margin-right: 5px;" /> 英文</label>
+            </div>
+          </div>
+          
+          <div v-if="translatedText || isTranslating">
+            <div class="sub-label" style="margin-top: 10px;">英文翻译（可直接修改）：</div>
+            <textarea 
+              v-model="translatedText" 
+              class="translate-textarea" 
+              rows="4"
+              placeholder="翻译结果将在此显示，您可以自由修改..."
+              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #dcdfe6; font-size: 14px; line-height: 1.5; resize: vertical;"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="btn-group" style="margin-top: 15px;">
           <button @click="saveCurrentRecord" class="btn btn-primary">💾 保存当前标注</button>
           <button @click="exportAllJsonl" class="btn btn-success">📤 导出全部 JSONL</button>
         </div>
@@ -506,7 +532,6 @@ const baseTags = {
   part: ['叶片', '枝条', '枝干', '花', '果实', '整株'],
   quantity: ['单片', '两片', '三片', '多片', '多个枝条', '整株'],
   mainPart: ['叶片', '嫩叶', '老叶', '叶面', '叶背', '枝条', '花', '果实'],
-  // 症状类型已拆分斜杠标签
   symptomType: ['病斑', '黄化', '褪绿', '干枯', '坏死', '卷曲', '皱缩', '萎蔫', '虫孔', '缺刻', '残缺', '潜道', '潜食斑', '刮食斑', '窗斑', '丝网', '虫粪', '分泌物', '裂缝', '机械损伤'],
   color: ['黑色', '棕色', '褐色', '灰白色', '黄色', '黄褐色', '浅褐色', '橙黄色', '红褐色', '橘黄色'],
   shape: ['圆形', '近圆形', '椭圆形', '条状', '短条状', '不规则形'],
@@ -521,7 +546,7 @@ const baseTags = {
   extra: ['黄色晕圈', '深色边缘', '中心灰白', '同心轮纹', '中心开裂', '内部虫粪', '内部坏死', '裂缝'],
   diagnosisType: ['病害', '虫害', '环境胁迫'],
   pathogenType: ['真菌', '细菌', '病毒', '其他病原'],
-  pathogenName: [], // 病原名称不预设任何子标签
+  pathogenName: [],
   stressType: ['缺水/干旱胁迫', '水涝胁迫', '高温/日灼', '低温/冻害', '营养缺乏', '药害', '机械损伤'],
   nutritionDeficiency: ['缺氮', '缺铁', '缺钾', '其他'],
   pestStage: ['成虫', '幼虫', '若虫', '虫卵', '其他虫体'],
@@ -551,7 +576,7 @@ const removeCustomTag = (key, tag) => {
     position: 'position', range: 'range', distribution: 'distribution',
     symptomQuantity: 'quantity', severity: 'severity', transparency: 'transparency',
     extra: 'extra', diagnosisType: 'type', pathogenType: 'pathogenType',
-    pathogenName: 'pathogenName', // 增加病原名称映射
+    pathogenName: 'pathogenName',
     stressType: 'stressType', nutritionDeficiency: 'nutritionDeficiency',
     pestStage: 'stage', pestQuantity: 'quantity', pestPosition: 'position'
   }
@@ -573,7 +598,6 @@ const removeCustomTag = (key, tag) => {
     if (formData.value.diagnosis && fKey === 'nutritionDeficiency' && Array.isArray(formData.value.diagnosis.nutritionDeficiency)) {
       formData.value.diagnosis.nutritionDeficiency = formData.value.diagnosis.nutritionDeficiency.filter(v => v !== tag)
     }
-    // 特殊处理病原名称数组
     if (formData.value.diagnosis && fKey === 'pathogenName' && Array.isArray(formData.value.diagnosis.pathogenName)) {
       formData.value.diagnosis.pathogenName = formData.value.diagnosis.pathogenName.filter(v => v !== tag)
     }
@@ -603,7 +627,6 @@ const submitCustomTag = (key) => {
   activeInputVal.value = ''
 }
 
-// 症状属性映射（更新了拆分后的独立标签）
 const symptomAttributes = {
   '病斑': ['color', 'shape', 'centerColor', 'edgeColor', 'position', 'distribution', 'quantity', 'severity', 'extra'],
   '黄化': ['color', 'position', 'range', 'distribution', 'severity', 'extra'],
@@ -635,11 +658,11 @@ const initFormData = () => ({
   status: [], crop: '', parts: [], quantity: '', mainPart: [],
   symptoms: [{ type: '', color: [], shape: [], centerColor: [], edgeColor: [], position: [], range: [], distribution: [], quantity: '', severity: '', transparency: [], extra: [] }],
   pest: { visible: false, stage: '', quantity: '', position: [] },
-  diagnosis: { type: '', name: '', pathogenType: '', pathogenName: [], pestName: '', stressType: [], nutritionDeficiency: [] } // pathogenName 改为数组
+  diagnosis: { type: '', name: '', pathogenType: '', pathogenName: [], pestName: '', stressType: [], nutritionDeficiency: [] }
 })
 
 const formData = ref(initFormData())
-const resetForm = () => { formData.value = initFormData() }
+const resetForm = () => { formData.value = initFormData(); translatedText.value = ''; }
 
 // ================= 4. 症状组的添加与删除 =================
 const addSymptom = () => {
@@ -693,7 +716,6 @@ const generatedText = computed(() => {
 
   if (symptomClauses.length) text += symptomClauses.join('；') + '。 '
 
-  // 诊断逻辑（病原名称数组处理）
   if (t.diagnosis.type === '病害' && t.diagnosis.name) {
     text += `根据已有标注，该图像对应${t.diagnosis.name}`
     if (t.diagnosis.pathogenName.length) {
@@ -714,12 +736,60 @@ const generatedText = computed(() => {
   return text || '请在上方勾选标签以生成文本...'
 })
 
-// ================= 6. 保存与导出 =================
+// ================= 6. 🚀 新增：翻译逻辑 =================
+const translatedText = ref('')
+const isTranslating = ref(false)
+const exportLanguage = ref('zh') // 默认导出中文
+
+// 检测是否包含中文字符
+const containsChinese = (text) => {
+  return /[\u4e00-\u9fa5]/.test(text)
+}
+
+const translateToEnglish = async () => {
+  const text = generatedText.value
+  if (!text || text === '请在上方勾选标签以生成文本...') return alert('请先生成中文描述！')
+  if (!containsChinese(text)) return alert('当前文本不包含中文，无需翻译。')
+
+  isTranslating.value = true
+  translatedText.value = '翻译中...'
+
+  try {
+    // 注意：这里的地址是你本地启动的 DeepL 代理地址。部署上线后请改成服务器的公网地址
+    const DEEPL_PROXY_URL = 'http://localhost:3000/v2/translate'
+    
+    const response = await fetch(DEEPL_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: [text],
+        source_lang: 'ZH',
+        target_lang: 'EN'
+      })
+    })
+    
+    if (!response.ok) throw new Error('翻译请求失败，请检查本地代理是否启动')
+    
+    const data = await response.json()
+    translatedText.value = data.translations[0].text
+  } catch (error) {
+    console.error('DeepL 翻译错误:', error)
+    alert('翻译失败：' + error.message + '\n请确保你的 DeepL 代理服务正在运行（npm start）。')
+    translatedText.value = ''
+  } finally {
+    isTranslating.value = false
+  }
+}
+
+// ================= 7. 保存与导出 =================
 const records = ref({})
 
 const saveCurrentRecord = () => {
   if (!currentImage.value) return alert('请先选择图片文件夹！')
   if (generatedText.value === '请在上方勾选标签以生成文本...') return alert('请至少勾选一些标签！')
+
+  // 🚀 根据导出语言选项，决定最终写入的文本
+  const finalDescription = exportLanguage.value === 'en' ? (translatedText.value || generatedText.value) : generatedText.value
 
   const record = {
     image_id: currentImage.value.name.split('.')[0],
@@ -735,12 +805,13 @@ const saveCurrentRecord = () => {
       type: formData.value.diagnosis.type,
       name: formData.value.diagnosis.name,
       pathogen_type: formData.value.diagnosis.pathogenType,
-      pathogen: formData.value.diagnosis.pathogenName.join('、') || '', // 转为字符串以匹配文档
+      pathogen: formData.value.diagnosis.pathogenName.join('、') || '',
       pestName: formData.value.diagnosis.pestName,
       stressType: formData.value.diagnosis.stressType,
       nutritionDeficiency: formData.value.diagnosis.nutritionDeficiency
     },
-    description_zh: generatedText.value,
+    // 🚀 修改：description_zh 字段根据用户的选择写入中文或英文
+    description_zh: finalDescription,
     qa: []
   }
 
@@ -757,7 +828,7 @@ const exportAllJsonl = () => {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `annotations_${new Date().getTime()}.jsonl`
+  a.download = `annotations_${exportLanguage.value}_${new Date().getTime()}.jsonl`
   a.click()
   URL.revokeObjectURL(url)
 }
